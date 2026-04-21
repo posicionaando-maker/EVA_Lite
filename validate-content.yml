@@ -1,0 +1,29 @@
+name: Validar archivo de contenidos
+
+on:
+  pull_request:
+    paths:
+      - 'contenidos.json'   # Se activa SOLO cuando este archivo cambia
+
+jobs:
+  validate-json:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Validar formato JSON
+        run: |
+          # Intenta leer el JSON. Si falla, el workflow falla.
+          if ! jq empty contenidos.json; then
+            echo "Error: El archivo contenidos.json no es un JSON válido."
+            exit 1
+          fi
+          echo "El JSON es válido."
+
+      - name: Buscar posibles secretos
+        run: |
+          # Busca patrones de secretos comunes (puedes ampliar la lista)
+          if grep -En '(password|token|secret|key).*=.+' contenidos.json; then
+            echo "::warning::Se ha detectado un posible secreto en contenidos.json. Revísalo antes de fusionar."
+          fi

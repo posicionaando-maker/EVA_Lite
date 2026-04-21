@@ -1,0 +1,102 @@
+{
+  "version": "1.0.0",
+  "fecha_actualizacion": "2024-01-15",
+  "temas": [
+    {
+      "id": "tema1",
+      "titulo": "📊 Introducción a Flujos de Información",
+      "descripcion_corta": "Conceptos básicos de flujos de datos",
+      "texto_completo": "Un flujo de información es la secuencia de pasos que siguen los datos desde su origen hasta su destino. Incluye entrada, proceso, almacenamiento y salida. Ejemplo: un formulario que ingresa datos a una base de datos.\n\nComponentes principales:\n- Fuente: origen de los datos\n- Canal: medio de transmisión\n- Receptor: destino final\n- Retroalimentación: respuesta del sistema",
+      "imagen": "",
+      "video_url": "",
+      "cuestionario": {
+        "preguntas": [
+          {
+            "pregunta": "¿Qué es un flujo de información?",
+            "tipo": "texto",
+            "respuesta_esperada": "Secuencia de pasos de datos desde origen a destino"
+          },
+          {
+            "pregunta": "Menciona 3 componentes de un flujo",
+            "tipo": "texto",
+            "respuesta_esperada": "Fuente, canal, receptor"
+          }
+        ]
+      },
+      "ejercicio_sugerido": "Dibuja un diagrama de flujo para el proceso de inscripción a un curso"
+    },
+    {
+      "id": "tema2",
+      "titulo": "🖼️ Formatos de Imagen Digital",
+      "descripcion_corta": "JPEG, PNG, GIF, BMP y sus usos",
+      "texto_completo": "Los formatos más comunes son:\n\n• JPEG/JPG: Compresión con pérdida, ideal para fotos. No soporta transparencia.\n• PNG: Compresión sin pérdida, soporta transparencia. Ideal para gráficos y logos.\n• GIF: Hasta 256 colores, soporta animación. Ideal para iconos simples.\n• BMP: Sin compresión, muy pesado. Poco usado hoy.\n• WEBP: Formato moderno, mejor compresión que JPEG y PNG.\n\nPara video: MP4 (recomendado), AVI, MOV, MKV.",
+      "imagen": "",
+      "video_url": "",
+      "cuestionario": {
+        "preguntas": [
+          {
+            "pregunta": "¿Qué formato es mejor para una foto de una cámara?",
+            "tipo": "multiple",
+            "opciones": ["PNG", "JPEG", "BMP", "GIF"],
+            "respuesta_correcta": "JPEG"
+          },
+          {
+            "pregunta": "¿Qué formato soporta transparencia?",
+            "tipo": "multiple",
+            "opciones": ["JPEG", "PNG", "GIF", "BMP"],
+            "respuesta_correcta": "PNG"
+          }
+        ]
+      },
+      "ejercicio_sugerido": "Convierte una imagen JPG a PNG y compara los tamaños"
+    },
+    {
+      "id": "tema3",
+      "titulo": "🔀 Modelado con Diagramas de Flujo",
+      "descripcion_corta": "Símbolos y notación estándar",
+      "texto_completo": "Símbolos estándar ISO:\n\n• Óvalo: Inicio/Fin del proceso\n• Rectángulo: Proceso/Acción\n• Rombo: Decisión (Sí/No)\n• Paralelogramo: Entrada/Salida de datos\n• Círculo: Conector (dentro de página)\n• Rectángulo con ondas: Documento\n\nEjemplo de uso: Algoritmo para determinar si un número es par:\nInicio → Leer número → ¿Número % 2 = 0? → Sí: 'Es par' → Fin\n                                      → No: 'Es impar' → Fin",
+      "imagen": "",
+      "video_url": "",
+      "cuestionario": {
+        "preguntas": [
+          {
+            "pregunta": "¿Qué símbolo representa una decisión?",
+            "tipo": "multiple",
+            "opciones": ["Rectángulo", "Rombo", "Óvalo", "Paralelogramo"],
+            "respuesta_correcta": "Rombo"
+          },
+          {
+            "pregunta": "Dibuja un diagrama de flujo para calcular el promedio de 3 notas",
+            "tipo": "texto",
+            "respuesta_esperada": "Inicio → Leer nota1, nota2, nota3 → promedio = (n1+n2+n3)/3 → Mostrar promedio → Fin"
+          }
+        ]
+      },
+      "ejercicio_sugerido": "Crea un diagrama de flujo para un cajero automático"
+    },
+    {
+      "id": "tema4",
+      "titulo": "🎬 Tratamiento de Video Básico",
+      "descripcion_corta": "FPS, resolución, codecs y herramientas",
+      "texto_completo": "Conceptos fundamentales:\n\n• FPS (Frames Per Second): Cuadros por segundo. 24fps (cine), 30fps (TV), 60fps (gaming).\n• Resolución: 480p, 720p, 1080p, 4K, 8K.\n• Codecs: H.264 (universal), H.265 (mejor compresión), VP9 (YouTube).\n• Contenedores: MP4 (recomendado), AVI (antiguo), MOV (Apple), MKV (flexible).\n\nHerramientas libres:\n- FFmpeg: línea de comandos, muy potente\n- Shotcut: editor gráfico\n- OBS Studio: grabación y streaming\n\nComando FFmpeg básico: ffmpeg -i entrada.mp4 -vf scale=1280:720 salida.mp4",
+      "imagen": "",
+      "video_url": "",
+      "cuestionario": {
+        "preguntas": [
+          {
+            "pregunta": "¿Qué significa FPS?",
+            "tipo": "texto",
+            "respuesta_esperada": "Frames Per Second (Cuadros por segundo)"
+          },
+          {
+            "pregunta": "¿Cuál es el codec más universal para video?",
+            "tipo": "multiple",
+            "opciones": ["H.265", "H.264", "VP9", "AV1"],
+            "respuesta_correcta": "H.264"
+          }
+        ]
+      },
+      "ejercicio_sugerido": "Usa FFmpeg para reducir la resolución de un video"
+    }
+  ]
+}

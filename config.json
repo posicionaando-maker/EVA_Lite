@@ -1,0 +1,15 @@
+{
+  "app_name": "EVA Lite - Clases TI",
+  "version": "2.0.0",
+  "api_url": "http://localhost:3000/api",
+  "offline_mode": true,
+  "max_file_size_mb": 10,
+  "allowed_file_types": ["image/jpeg", "image/png", "application/pdf"],
+  "temas_por_pagina": 6,
+  "colores": {
+    "primary": "#007bff",
+    "success": "#28a745",
+    "warning": "#ffc107",
+    "danger": "#dc3545"
+  }
+}
