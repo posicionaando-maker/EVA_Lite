@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>EVA Lite - Gestión de Contenidos con Seguimiento</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    /* Header */
+    .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; text-align: center; }
+    .modo-indicador { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; margin-top: 10px; }
+    .modo-profesor { background: #e91e63; }
+    .modo-estudiante { background: #4caf50; }
+    
+    /* Dashboard - SOLO para estudiantes */
+    .dashboard { background: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .dashboard h3 { color: #1a73e8; margin-bottom: 15px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; }
+    .stat-number { font-size: 2rem; font-weight: bold; color: #1a73e8; }
+    .stat-label { color: #666; font-size: 0.85rem; }
+    .progress-bar-container { background: #e0e0e0; border-radius: 10px; height: 25px; overflow: hidden; margin: 10px 0; }
+    .progress-bar-fill { background: linear-gradient(90deg, #4caf50, #8bc34a); height: 100%; width: 0%; transition: width 0.5s; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; }
+    .temas-progreso { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+    .tema-progreso-item { flex: 1; min-width: 70px; text-align: center; cursor: pointer; }
+    .tema-circulo { width: 45px; height: 45px; border-radius: 50%; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: transform 0.2s; }
+    .tema-circulo.completado { background: #4caf50; color: white; }
+    .tema-circulo.vencido { background: #e91e63; color: white; animation: pulse 1s infinite; }
+    .tema-circulo.pendiente { background: #ff9800; color: white; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    
+    /* Dashboard del profesor - Tabla de estudiantes */
+    .dashboard-profesor { background: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .dashboard-profesor h3 { color: #e91e63; margin-bottom: 15px; }
+    .tabla-estudiantes { overflow-x: auto; }
+    .tabla-estudiantes table { width: 100%; border-collapse: collapse; }
+    .tabla-estudiantes th, .tabla-estudiantes td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    .tabla-estudiantes th { background: #e91e63; color: white; }
+    .tabla-estudiantes tr:hover { background: #f5f5f5; }
+    .progreso-barra { background: #e0e0e0; border-radius: 5px; width: 100px; overflow: hidden; display: inline-block; }
+    .progreso-barra-fill { background: #4caf50; height: 20px; border-radius: 5px; text-align: center; color: white; font-size: 0.7rem; line-height: 20px; }
+    
+    /* Tabs */
+    .tabs { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+    .tab { background: white; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .tab.activo { background: #1a73e8; color: white; }
+    
+    /* Tarjetas de temas */
+    .temas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 25px; }
+    .tema-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; cursor: pointer; }
+    .tema-card.vencido { border: 2px solid #e91e63; }
+    .tema-card.completado { border: 2px solid #4caf50; background: #f0fff0; }
+    .tema-header { background: #1a73e8; color: white; padding: 20px; }
+    .tema-card.vencido .tema-header { background: #e91e63; }
+    .tema-card.completado .tema-header { background: #4caf50; }
+    .tema-body { padding: 20px; display: none; }
+    .tema-card.abierto .tema-body { display: block; }
+    .fecha-vencimiento { font-size: 0.75rem; margin-top: 8px; opacity: 0.9; }
+    .seccion { margin-bottom: 20px; }
+    .seccion h4 { color: #1a73e8; margin-bottom: 8px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; }
+    .contenido-breve, .orientacion, .bibliografia, .conclusiones { padding: 12px; border-radius: 8px; line-height: 1.5; }
+    .contenido-breve { background: #f8f9fa; }
+    .orientacion { background: #e8f0fe; border-left: 4px solid #1a73e8; }
+    .bibliografia { background: #fff3e0; }
+    .conclusiones { background: #e8f5e9; border-left: 4px solid #4caf50; }
+    .actividad { background: #fce4ec; padding: 15px; border-radius: 10px; margin-top: 15px; }
+    .btn-actividad { background: #e91e63; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+    
+    /* Toolbar profesor */
+    .toolbar-profesor { background: #fff3e0; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border: 2px solid #ff9800; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+    .btn-primary { background: #4caf50; color: white; }
+    .btn-warning { background: #ff9800; color: white; }
+    .btn-secondary { background: #6c757d; color: white; }
+    
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
+    .modal-content { background: white; padding: 35px; border-radius: 20px; max-width: 450px; width: 90%; text-align: center; }
+    .modal-content h2 { color: #1a73e8; margin-bottom: 10px; }
+    .modal-content input { width: 100%; padding: 15px; font-size: 1.2rem; border: 2px solid #ddd; border-radius: 10px; margin: 15px 0; text-align: center; }
+    .modal-content input:focus { outline: none; border-color: #1a73e8; }
+    .modal-content .btn { width: 100%; padding: 12px; margin-top: 10px; }
+    
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #4caf50; color: white; padding: 12px 20px; border-radius: 8px; animation: slideIn 0.3s ease; z-index: 2000; }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    
+    @media (max-width: 768px) { .temas-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📚 EVA Lite - Gestión de Contenidos</h1>
+    <p>Plataforma con seguimiento de progreso y fechas de vencimiento</p>
+    <div id="modo-indicador" class="modo-indicador modo-estudiante">👨‍🎓 Modo Estudiante</div>
+    <div><button id="btn-cambiar-modo" class="btn btn-secondary" style="margin-top:10px;">👥 Cambiar a Modo Profesor</button></div>
+  </div>
+  
+  <!-- Dashboard ESTUDIANTE (visible solo en modo estudiante) -->
+  <div id="dashboard-estudiante" class="dashboard">
+    <h3>📊 Mi Progreso Académico</h3>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progress-global">0%</div>
+    </div>
+    <div id="temas-progreso-visual" class="temas-progreso"></div>
+  </div>
+  
+  <!-- Dashboard PROFESOR (visible solo en modo profesor) -->
+  <div id="dashboard-profesor" class="dashboard-profesor" style="display:none;">
+    <h3>👥 Progreso de Todos los Estudiantes</h3>
+    <div id="lista-estudiantes-container"></div>
+  </div>
+  
+  <!-- Tabs -->
+  <div class="tabs" id="tabs-materias"></div>
+  
+  <!-- Toolbar profesor -->
+  <div id="toolbar-profesor" style="display:none;">
+    <div class="toolbar-profesor">
+      <div><h3>🔧 Panel del Profesor</h3></div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button id="btn-refresh-estudiantes" class="btn btn-primary">🔄 Actualizar</button>
+        <button id="btn-exportar-todo" class="btn btn-warning">📤 Exportar Datos</button>
+        <button id="btn-reset-progreso" class="btn btn-secondary" style="background:#dc3545;">🗑️ Resetear Progreso</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Contenedor de temas -->
+  <div id="temas-container"></div>
+</div>
+
+<!-- Modal login profesor -->
+<div id="modal-login" class="modal">
+  <div class="modal-content">
+    <h2>🔐 Acceso Profesor</h2>
+    <p>Ingresa la contraseña para acceder al panel de control</p>
+    <input type="password" id="password-profesor" placeholder="Contraseña" autocomplete="off">
+    <button id="btn-verificar" class="btn btn-primary">🔓 Ingresar</button>
+    <button id="btn-cerrar-modal" class="btn btn-secondary">Cancelar</button>
+  </div>
+</div>
+
+<script>
+  // ========================================
+  // CONFIGURACIÓN
+  // ========================================
+  const PROFESOR_PASSWORD = "eva2024";
+  
+  // ========================================
+  // DATOS DE MATERIAS
+  // ========================================
+  let materias = {
+    "modelado-flujos": {
+      nombre: "📊 Modelado de Flujos de Información",
+      icono: "📊",
+      temas: [
+        { id: "mf1", titulo: "Fundamentos de Flujos de Información", objetivo: "Comprender los conceptos básicos de los flujos de información", contenido_breve: "<p><strong>¿Qué es un flujo de información?</strong><br>Es la secuencia de pasos que siguen los datos desde su origen hasta su destino.</p>", orientacion_autoaprendizaje: "<p>📌 Identifica 3 flujos en tu vida diaria.</p>", bibliografia: "<ul><li>Pressman - Ingeniería de Software</li></ul>", conclusiones: "<p>✅ Podrás identificar flujos de información.</p>", actividad_practica: { descripcion: "Dibuja un diagrama de flujo", entregable: "Imagen" }, fecha_vencimiento: "2024-04-15" },
+        { id: "mf2", titulo: "Diagramas de Flujo", objetivo: "Aprender la simbología estándar", contenido_breve: "<p><strong>Simbología:</strong> Óvalo, Rectángulo, Rombo, Paralelogramo</p>", orientacion_autoaprendizaje: "<p>📌 Practica dibujando diagramas.</p>", bibliografia: "<ul><li>ISO 5807:1985</li></ul>", conclusiones: "<p>✅ Sabrás crear diagramas de flujo.</p>", actividad_practica: { descripcion: "Diagrama para calcular promedio", entregable: "Diagrama" }, fecha_vencimiento: "2024-04-30" }
+      ]
+    },
+    "tratamiento-imagen-video": {
+      nombre: "🎬 Tratamiento de Imagen y Video",
+      icono: "🎬",
+      temas: [
+        { id: "iv1", titulo: "Formatos de Imagen", objetivo: "Conocer los principales formatos", contenido_breve: "<p><strong>Formatos:</strong> JPEG, PNG, GIF, WEBP</p>", orientacion_autoaprendizaje: "<p>📌 Convierte una imagen a diferentes formatos.</p>", bibliografia: "<ul><li>Gonzalez - Digital Image Processing</li></ul>", conclusiones: "<p>✅ Sabrás elegir el formato adecuado.</p>", actividad_practica: { descripcion: "Analiza 5 imágenes", entregable: "Documento" }, fecha_vencimiento: "2024-04-20" },
+        { id: "iv2", titulo: "Conceptos de Video", objetivo: "Entender FPS, codecs", contenido_breve: "<p><strong>Conceptos:</strong> FPS, Resolución, Codecs</p>", orientacion_autoaprendizaje: "<p>📌 Usa HandBrake para convertir un video.</p>", bibliografia: "<ul><li>FFmpeg Documentation</li></ul>", conclusiones: "<p>✅ Podrás optimizar videos.</p>", actividad_practica: { descripcion: "Convierte un video a MP4", entregable: "Video" }, fecha_vencimiento: "2024-05-05" }
+      ]
+    },
+    "tecnologias-informacion": {
+      nombre: "💻 Tecnologías de la Información",
+      icono: "💻",
+      temas: [
+        { id: "ti1", titulo: "Introducción a las TI", objetivo: "Comprender el alcance de las TI", contenido_breve: "<p><strong>Áreas:</strong> Hardware, Software, Redes</p>", orientacion_autoaprendizaje: "<p>📌 Investiga empresas líderes en TI.</p>", bibliografia: "<ul><li>Laudon - Sistemas de Información</li></ul>", conclusiones: "<p>✅ Comprenderás el impacto de las TI.</p>", actividad_practica: { descripcion: "Identifica 10 tecnologías", entregable: "Lista" }, fecha_vencimiento: "2024-04-10" },
+        { id: "ti2", titulo: "Infraestructura TI", objetivo: "Conocer componentes de infraestructura", contenido_breve: "<p><strong>Componentes:</strong> Servidores, Redes, Cloud</p>", orientacion_autoaprendizaje: "<p>📌 Investiga qué es un centro de datos.</p>", bibliografia: "<ul><li>Stallings - Arquitectura</li></ul>", conclusiones: "<p>✅ Identificarás componentes de infraestructura.</p>", actividad_practica: { descripcion: "Dibuja un diagrama de infraestructura", entregable: "Diagrama" }, fecha_vencimiento: "2024-04-25" },
+        { id: "ti3", titulo: "Seguridad Informática", objetivo: "Aprender principios de seguridad", contenido_breve: "<p><strong>Triada CIA:</strong> Confidencialidad, Integridad, Disponibilidad</p>", orientacion_autoaprendizaje: "<p>📌 Audita la seguridad de tus cuentas.</p>", bibliografia: "<ul><li>Stallings - Criptografía</li></ul>", conclusiones: "<p>✅ Aplicarás buenas prácticas.</p>", actividad_practica: { descripcion: "Auditoría de seguridad", entregable: "Informe" }, fecha_vencimiento: "2024-05-10" }
+      ]
+    }
+  };
+  
+  // ========================================
+  // ESTADO GLOBAL
+  // ========================================
+  let estudianteActual = null;
+  let progresoGlobal = {};
+  let modoProfesor = false;
+  let materiaActual = "modelado-flujos";
+  
+  // ========================================
+  // FUNCIONES AUXILIARES
+  // ========================================
+  function mostrarToast(mensaje, tipo = "success") {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.style.background = tipo === "error" ? "#e91e63" : "#4caf50";
+    toast.innerHTML = mensaje;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+  
+  function guardarTodo() {
+    localStorage.setItem("eva_materias", JSON.stringify(materias));
+    localStorage.setItem("eva_progreso_global", JSON.stringify(progresoGlobal));
+    if (estudianteActual && !modoProfesor) localStorage.setItem("eva_estudiante_actual", JSON.stringify(estudianteActual));
+  }
+  
+  function cargarTodo() {
+    const materiasGuardadas = localStorage.getItem("eva_materias");
+    if (materiasGuardadas) materias = JSON.parse(materiasGuardadas);
+    const progresoGuardado = localStorage.getItem("eva_progreso_global");
+    if (progresoGuardado) progresoGlobal = JSON.parse(progresoGuardado);
+    const estudianteGuardado = localStorage.getItem("eva_estudiante_actual");
+    if (estudianteGuardado && !modoProfesor) estudianteActual = JSON.parse(estudianteGuardado);
+  }
+  
+  function obtenerEstadoTema(temaId, email = null) {
+    const emailEst = email || (estudianteActual ? estudianteActual.email : null);
+    if (!emailEst) return "pendiente";
+    const completado = progresoGlobal[emailEst]?.[temaId]?.completado;
+    if (completado) return "completado";
+    
+    for (const materia of Object.values(materias)) {
+      const tema = materia.temas.find(t => t.id === temaId);
+      if (tema && tema.fecha_vencimiento) {
+        const hoy = new Date();
+        hoy.setHours(0,0,0,0);
+        const vencimiento = new Date(tema.fecha_vencimiento);
+        if (vencimiento < hoy) return "vencido";
+      }
+    }
+    return "pendiente";
+  }
+  
+  function calcularProgreso(email = null) {
+    const emailEst = email || (estudianteActual ? estudianteActual.email : null);
+    if (!emailEst) return { total: 0, completados: 0, vencidos: 0, pendientes: 0, porcentaje: 0 };
+    
+    let totalTemas = 0, completados = 0, vencidos = 0;
+    for (const materia of Object.values(materias)) {
+      for (const tema of materia.temas) {
+        totalTemas++;
+        const estado = obtenerEstadoTema(tema.id, emailEst);
+        if (estado === "completado") completados++;
+        else if (estado === "vencido") vencidos++;
+      }
+    }
+    const pendientes = totalTemas - completados - vencidos;
+    const porcentaje = totalTemas > 0 ? Math.round((completados / totalTemas) * 100) : 0;
+    return { total: totalTemas, completados, vencidos, pendientes, porcentaje };
+  }
+  
+  // ========================================
+  // FUNCIONES GLOBALES
+  // ========================================
+  window.toggleTema = function(temaId) {
+    const card = document.getElementById(`tema-card-${temaId}`);
+    if (card) card.classList.toggle('abierto');
+  };
+  
+  window.marcarCompletado = function(temaId) {
+    if (modoProfesor) {
+      mostrarToast("⚠️ Modo profesor: no puedes marcar temas como estudiante", "error");
+      return;
+    }
+    
+    if (!estudianteActual) {
+      const nombre = prompt("📝 Ingresa tu nombre completo:", "");
+      const email = prompt("📧 Ingresa tu correo electrónico:", "");
+      if (!nombre || !email) return;
+      estudianteActual = { nombre, email };
+      guardarTodo();
+      mostrarToast(`✅ Bienvenido ${nombre}! Tu progreso se guardará localmente.`);
+    }
+    
+    if (!progresoGlobal[estudianteActual.email]) progresoGlobal[estudianteActual.email] = {};
+    progresoGlobal[estudianteActual.email][temaId] = { completado: true, fecha: new Date().toISOString() };
+    guardarTodo();
+    renderizarTodo();
+    mostrarToast(`✅ ¡Felicidades! Tema completado el ${new Date().toLocaleDateString()}`);
+  };
+  
+  window.editarFecha = function(temaId) {
+    if (!modoProfesor) return;
+    for (const materia of Object.values(materias)) {
+      const tema = materia.temas.find(t => t.id === temaId);
+      if (tema) {
+        const nuevaFecha = prompt(`📅 Nueva fecha para "${tema.titulo}" (YYYY-MM-DD):`, tema.fecha_vencimiento || "");
+        if (nuevaFecha && /^\d{4}-\d{2}-\d{2}$/.test(nuevaFecha)) {
+          tema.fecha_vencimiento = nuevaFecha;
+          guardarTodo();
+          renderizarTodo();
+          mostrarToast("📅 Fecha de vencimiento actualizada");
+        } else if (nuevaFecha) alert("Formato incorrecto. Use YYYY-MM-DD");
+        return;
+      }
+    }
+  };
+  
+  // ========================================
+  // RENDERIZADO
+  // ========================================
+  function renderizarDashboardEstudiante() {
+    const stats = calcularProgreso();
+    document.getElementById("stats-grid").innerHTML = `
+      <div class="stat-card"><div class="stat-number">${stats.completados}</div><div class="stat-label">✅ Completados</div></div>
+      <div class="stat-card"><div class="stat-number">${stats.vencidos}</div><div class="stat-label">⚠️ Vencidos</div></div>
+      <div class="stat-card"><div class="stat-number">${stats.pendientes}</div><div class="stat-label">📖 Pendientes</div></div>
+      <div class="stat-card"><div class="stat-number">${stats.total}</div><div class="stat-label">📚 Total</div></div>
+    `;
+    const progressFill = document.getElementById("progress-global");
+    progressFill.style.width = `${stats.porcentaje}%`;
+    progressFill.textContent = `${stats.porcentaje}% Completado`;
+    
+    let todosTemas = [];
+    for (const materia of Object.values(materias)) {
+      for (const tema of materia.temas) {
+        todosTemas.push(tema);
+      }
+    }
+    document.getElementById("temas-progreso-visual").innerHTML = todosTemas.map((tema, idx) => {
+      const estado = obtenerEstadoTema(tema.id);
+      let letra = "📖";
+      if (estado === "completado") letra = "✅";
+      else if (estado === "vencido") letra = "⚠️";
+      return `<div class="tema-progreso-item" onclick="toggleTema('${tema.id}')">
+        <div class="tema-circulo ${estado}">${letra}</div>
+        <small>${tema.titulo.substring(0, 12)}</small>
+      </div>`;
+    }).join("");
+  }
+  
+  function renderizarDashboardProfesor() {
+    const estudiantes = Object.keys(progresoGlobal).map(email => {
+      const stats = calcularProgreso(email);
+      const nombre = progresoGlobal[email]?.nombre || email.split('@')[0];
+      return { email, nombre, ...stats };
+    });
+    
+    if (estudiantes.length === 0) {
+      document.getElementById("lista-estudiantes-container").innerHTML = `<p style="text-align:center; padding:30px;">📭 No hay estudiantes registrados aún. Los estudiantes aparecerán aquí cuando marquen su primer tema como completado.</p>`;
+      return;
+    }
+    
+    document.getElementById("lista-estudiantes-container").innerHTML = `
+      <div class="tabla-estudiantes">
+        <table>
+          <thead>
+            <tr>
+              <th>👨‍🎓 Estudiante</th>
+              <th>📧 Email</th>
+              <th>✅ Completados</th>
+              <th>⚠️ Vencidos</th>
+              <th>📖 Pendientes</th>
+              <th>📊 Progreso</th>
+              <th>📋 Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${estudiantes.map(est => `
+              <tr>
+                <td><strong>${est.nombre}</strong></td>
+                <td>${est.email}</td>
+                <td style="color:#4caf50; font-weight:bold;">${est.completados}</td>
+                <td style="color:#e91e63; font-weight:bold;">${est.vencidos}</td>
+                <td style="color:#ff9800;">${est.pendientes}</td>
+                <td>
+                  <div class="progreso-barra">
+                    <div class="progreso-barra-fill" style="width:${est.porcentaje}%">${est.porcentaje}%</div>
+                  </div>
+                </td>
+                <td><button onclick="verDetalleEstudiante('${est.email}')" class="btn btn-secondary" style="padding:5px 10px; font-size:0.8rem;">Ver</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+  
+  window.verDetalleEstudiante = function(email) {
+    const stats = calcularProgreso(email);
+    let detalles = `<div style="max-height:400px; overflow-y:auto;"><h3>📋 Detalle de ${email}</h3><ul>`;
+    for (const materia of Object.values(materias)) {
+      detalles += `<li><strong>${materia.nombre}</strong><ul>`;
+      for (const tema of materia.temas) {
+        const estado = obtenerEstadoTema(tema.id, email);
+        const estadoTexto = estado === "completado" ? "✅ Completado" : estado === "vencido" ? "⚠️ Vencido" : "📖 Pendiente";
+        detalles += `<li>${tema.titulo}: ${estadoTexto}</li>`;
+      }
+      detalles += `</ul></li>`;
+    }
+    detalles += `</ul></div>`;
+    
+    const modal = document.createElement("div");
+    modal.className = "modal";
+    modal.style.display = "flex";
+    modal.innerHTML = `<div class="modal-content" style="max-width:500px; text-align:left;"><button onclick="this.closest('.modal').remove()" style="float:right; background:#e91e63; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">✖</button>${detalles}</div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.remove(); });
+  };
+  
+  function renderizarTabs() {
+    const tabsContainer = document.getElementById("tabs-materias");
+    tabsContainer.innerHTML = Object.keys(materias).map(key => `
+      <div class="tab ${materiaActual === key ? 'activo' : ''}" data-materia="${key}">${materias[key].icono} ${materias[key].nombre}</div>
+    `).join("");
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => { materiaActual = tab.dataset.materia; renderizarTodo(); });
+    });
+  }
+  
+  function renderizarTemas() {
+    const container = document.getElementById("temas-container");
+    const materia = materias[materiaActual];
+    if (!materia?.temas?.length) {
+      container.innerHTML = `<div style="text-align:center; padding:50px; background:white; border-radius:15px;"><p>📭 No hay temas en esta materia.</p></div>`;
+      return;
+    }
+    
+    container.innerHTML = materia.temas.map(tema => {
+      const estado = modoProfesor ? "pendiente" : obtenerEstadoTema(tema.id);
+      const esVencido = !modoProfesor && estado === "vencido";
+      const esCompletado = !modoProfesor && estado === "completado";
+      const fechaVenc = tema.fecha_vencimiento ? new Date(tema.fecha_vencimiento).toLocaleDateString() : "Sin fecha";
+      
+      let botonActividad = "";
+      if (!modoProfesor && !esCompletado) {
+        botonActividad = `<button class="btn-actividad" onclick="marcarCompletado('${tema.id}')">✅ Marcar como estudiado</button>`;
+      } else if (!modoProfesor && esCompletado) {
+        botonActividad = '<span style="color:#4caf50;">✅ Tema completado</span>';
+      } else if (modoProfesor) {
+        botonActividad = '<span style="color:#666;">👨‍🏫 Modo profesor - Los estudiantes pueden marcar este tema</span>';
+      }
+      
+      return `
+        <div class="tema-card ${esVencido ? 'vencido' : ''} ${esCompletado ? 'completado' : ''}" id="tema-card-${tema.id}">
+          <div class="tema-header" onclick="toggleTema('${tema.id}')">
+            <h3>${tema.titulo} ${esCompletado ? '✅' : esVencido ? '⚠️ VENCIDO' : ''}</h3>
+            <div class="objetivo">🎯 ${tema.objetivo.substring(0, 80)}</div>
+            <div class="fecha-vencimiento">📅 Vence: ${fechaVenc}</div>
+          </div>
+          <div class="tema-body">
+            <div class="seccion"><h4>📖 Contenidos</h4><div class="contenido-breve">${tema.contenido_breve}</div></div>
+            <div class="seccion"><h4>🧠 Orientación</h4><div class="orientacion">${tema.orientacion_autoaprendizaje}</div></div>
+            <div class="seccion"><h4>📚 Bibliografía</h4><div class="bibliografia">${tema.bibliografia}</div></div>
+            <div class="seccion"><h4>🏁 Conclusiones</h4><div class="conclusiones">${tema.conclusiones}</div></div>
+            <div class="actividad"><h4>✏️ Actividad</h4><p>${tema.actividad_practica.descripcion}</p><p><strong>📎 Entregable:</strong> ${tema.actividad_practica.entregable}</p>
+            ${botonActividad}
+            </div>
+            ${modoProfesor ? `<div style="margin-top:15px;"><button class="btn btn-warning" onclick="editarFecha('${tema.id}')" style="font-size:0.8rem;">📅 Editar fecha</button></div>` : ''}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+  
+  function renderizarTodo() {
+    renderizarTabs();
+    renderizarTemas();
+    
+    if (modoProfesor) {
+      document.getElementById("dashboard-estudiante").style.display = "none";
+      document.getElementById("dashboard-profesor").style.display = "block";
+      renderizarDashboardProfesor();
+    } else {
+      document.getElementById("dashboard-estudiante").style.display = "block";
+      document.getElementById("dashboard-profesor").style.display = "none";
+      renderizarDashboardEstudiante();
+    }
+  }
+  
+  // ========================================
+  // MODO PROFESOR
+  // ========================================
+  function resetearProgreso() {
+    if (confirm("⚠️ ¿Estás seguro de que quieres RESETEAR TODO el progreso de TODOS los estudiantes? Esta acción NO se puede deshacer.")) {
+      progresoGlobal = {};
+      guardarTodo();
+      renderizarTodo();
+      mostrarToast("🗑️ Todo el progreso ha sido eliminado");
+    }
+  }
+  
+  function exportarDatos() {
+    const data = { materias, progresoGlobal, fecha_exportacion: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `eva-backup-${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    mostrarToast("📤 Datos exportados");
+  }
+  
+  function activarModoProfesor() {
+    modoProfesor = true;
+    estudianteActual = null;  // Limpiar estudiante actual
+    document.getElementById("modo-indicador").className = "modo-indicador modo-profesor";
+    document.getElementById("modo-indicador").innerHTML = "👨‍🏫 Modo Profesor";
+    document.getElementById("toolbar-profesor").style.display = "block";
+    document.getElementById("btn-cambiar-modo").innerHTML = "👨‍🎓 Cambiar a Modo Estudiante";
+    renderizarTodo();
+    mostrarToast("🔓 Modo profesor activado - Puedes ver el progreso de todos los estudiantes");
+  }
+  
+  function desactivarModoProfesor() {
+    modoProfesor = false;
+    // Recargar estudiante desde localStorage
+    const estudianteGuardado = localStorage.getItem("eva_estudiante_actual");
+    if (estudianteGuardado) estudianteActual = JSON.parse(estudianteGuardado);
+    else estudianteActual = null;
+    
+    document.getElementById("modo-indicador").className = "modo-indicador modo-estudiante";
+    document.getElementById("modo-indicador").innerHTML = "👨‍🎓 Modo Estudiante";
+    document.getElementById("toolbar-profesor").style.display = "none";
+    document.getElementById("btn-cambiar-modo").innerHTML = "👥 Cambiar a Modo Profesor";
+    renderizarTodo();
+    mostrarToast("🔒 Modo estudiante - Solo puedes ver tu propio progreso");
+  }
+  
+  // ========================================
+  // INICIALIZACIÓN
+  // ========================================
+  function iniciar() {
+    cargarTodo();
+    renderizarTodo();
+    
+    document.getElementById("btn-cambiar-modo").addEventListener("click", () => {
+      if (modoProfesor) desactivarModoProfesor();
+      else document.getElementById("modal-login").style.display = "flex";
+    });
+    
+    document.getElementById("btn-verificar").addEventListener("click", () => {
+      if (document.getElementById("password-profesor").value === PROFESOR_PASSWORD) {
+        document.getElementById("modal-login").style.display = "none";
+        document.getElementById("password-profesor").value = "";
+        activarModoProfesor();
+      } else {
+        alert("❌ Contraseña incorrecta");
+        document.getElementById("password-profesor").value = "";
+        document.getElementById("password-profesor").focus();
+      }
+    });
+    
+    document.getElementById("btn-cerrar-modal").addEventListener("click", () => {
+      document.getElementById("modal-login").style.display = "none";
+      document.getElementById("password-profesor").value = "";
+    });
+    
+    document.getElementById("btn-refresh-estudiantes")?.addEventListener("click", () => {
+      renderizarDashboardProfesor();
+      mostrarToast("🔄 Lista de estudiantes actualizada");
+    });
+    
+    document.getElementById("btn-exportar-todo")?.addEventListener("click", exportarDatos);
+    document.getElementById("btn-reset-progreso")?.addEventListener("click", resetearProgreso);
+    
+    document.getElementById("modal-login").addEventListener("click", (e) => {
+      if (e.target === document.getElementById("modal-login")) {
+        document.getElementById("modal-login").style.display = "none";
+        document.getElementById("password-profesor").value = "";
+      }
+    });
+    
+    document.getElementById("password-profesor").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") document.getElementById("btn-verificar").click();
+    });
+  }
+  
+  iniciar();
+</script>
+</body>
+</html>
