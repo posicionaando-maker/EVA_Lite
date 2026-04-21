@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>EVA Lite - Sistema de Gestión de Contenidos</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    /* Header */
+    .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; text-align: center; }
+    .header h1 { font-size: 2rem; margin-bottom: 10px; }
+    .modo-indicador { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; margin-top: 10px; }
+    .modo-profesor { background: #e91e63; }
+    .modo-estudiante { background: #4caf50; }
+    
+    /* Tabs de materias */
+    .tabs { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+    .tab { background: white; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .tab:hover { transform: translateY(-2px); }
+    .tab.activo { background: #1a73e8; color: white; }
+    
+    /* Toolbar profesor */
+    .toolbar-profesor { background: #fff3e0; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border: 2px solid #ff9800; }
+    .toolbar-profesor h3 { color: #e65100; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+    .btn-primary { background: #4caf50; color: white; }
+    .btn-primary:hover { background: #388e3c; }
+    .btn-warning { background: #ff9800; color: white; }
+    .btn-warning:hover { background: #f57c00; }
+    .btn-danger { background: #e91e63; color: white; }
+    .btn-danger:hover { background: #c2185b; }
+    .btn-secondary { background: #6c757d; color: white; }
+    
+    /* Formulario de edición */
+    .editor { background: white; border-radius: 15px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .editor h3 { color: #1a73e8; margin-bottom: 20px; }
+    .editor input, .editor textarea, .editor select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
+    .editor textarea { min-height: 150px; resize: vertical; }
+    .editor-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    
+    /* Tarjetas de temas */
+    .temas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 25px; }
+    .tema-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
+    .tema-card:hover { transform: translateY(-3px); }
+    .tema-header { background: #1a73e8; color: white; padding: 20px; cursor: pointer; }
+    .tema-header h3 { margin-bottom: 5px; }
+    .tema-header .objetivo { font-size: 0.85rem; opacity: 0.9; margin-top: 8px; }
+    .tema-body { padding: 20px; display: none; border-top: 1px solid #eee; }
+    .tema-card.abierto .tema-body { display: block; }
+    .seccion { margin-bottom: 20px; }
+    .seccion h4 { color: #1a73e8; margin-bottom: 8px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; }
+    .contenido-breve { background: #f8f9fa; padding: 15px; border-radius: 10px; line-height: 1.6; }
+    .orientacion { background: #e8f0fe; padding: 15px; border-radius: 10px; border-left: 4px solid #1a73e8; }
+    .bibliografia { background: #fff3e0; padding: 15px; border-radius: 10px; }
+    .conclusiones { background: #e8f5e9; padding: 15px; border-radius: 10px; border-left: 4px solid #4caf50; }
+    .actividad { background: #fce4ec; padding: 15px; border-radius: 10px; margin-top: 15px; }
+    .btn-actividad { background: #e91e63; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+    .badge-materia { display: inline-block; background: #ff9800; color: white; font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; margin-left: 10px; }
+    .acciones-tema { margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-editar, .btn-eliminar { padding: 5px 12px; font-size: 0.8rem; }
+    .btn-editar { background: #ff9800; color: white; }
+    .btn-eliminar { background: #e91e63; color: white; }
+    
+    /* Modal login */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 2000; }
+    .modal-content { background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%; }
+    .modal-content input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 8px; }
+    
+    /* Toast notificaciones */
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #4caf50; color: white; padding: 12px 20px; border-radius: 8px; animation: slideIn 0.3s ease; z-index: 2000; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    
+    @media (max-width: 768px) { body { padding: 10px; } .temas-grid { grid-template-columns: 1fr; } .editor-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📚 EVA Lite - Sistema de Gestión de Contenidos</h1>
+    <p>Plataforma para gestión de contenidos educativos de TI</p>
+    <div id="modo-indicador" class="modo-indicador modo-estudiante">👨‍🎓 Modo Estudiante</div>
+    <div><button id="btn-cambiar-modo" class="btn btn-secondary" style="margin-top:10px;">👥 Cambiar a Modo Profesor</button></div>
+  </div>
+  
+  <!-- Tabs de materias -->
+  <div class="tabs" id="tabs-materias"></div>
+  
+  <!-- Toolbar de profesor (oculto por defecto) -->
+  <div id="toolbar-profesor" style="display:none;">
+    <div class="toolbar-profesor">
+      <div>
+        <h3>🔧 Panel de Control del Profesor</h3>
+        <p style="font-size:0.85rem;">Aquí puedes gestionar todos los contenidos de las materias</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button id="btn-nuevo-tema" class="btn btn-primary">➕ Nuevo Tema</button>
+        <button id="btn-exportar-todo" class="btn btn-warning">📤 Exportar Todo</button>
+        <button id="btn-importar" class="btn btn-primary">📥 Importar JSON</button>
+      </div>
+    </div>
+    
+    <!-- Editor de temas (oculto inicialmente) -->
+    <div id="editor-tema" class="editor" style="display:none;">
+      <h3 id="editor-titulo">✏️ Editar Tema</h3>
+      <input type="text" id="tema-id" placeholder="ID (ej: tema1)" style="display:none;">
+      <input type="text" id="tema-titulo" placeholder="Título del tema">
+      <input type="text" id="tema-objetivo" placeholder="Objetivo del tema">
+      <textarea id="tema-contenido" placeholder="Contenido principal (puedes usar HTML)"></textarea>
+      <textarea id="tema-orientacion" placeholder="Orientación para autoaprendizaje"></textarea>
+      <textarea id="tema-bibliografia" placeholder="Bibliografía sugerida"></textarea>
+      <textarea id="tema-conclusiones" placeholder="Conclusiones"></textarea>
+      <div class="editor-row">
+        <input type="text" id="tema-actividad-desc" placeholder="Descripción de actividad práctica">
+        <input type="text" id="tema-actividad-entregable" placeholder="Entregable esperado">
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button id="btn-cancelar-edicion" class="btn btn-secondary">Cancelar</button>
+        <button id="btn-guardar-tema" class="btn btn-primary">💾 Guardar Tema</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Contenedor de temas de la materia actual -->
+  <div id="temas-container"></div>
+</div>
+
+<!-- Modal de login profesor -->
+<div id="modal-login" class="modal">
+  <div class="modal-content">
+    <h2>🔐 Acceso Profesor</h2>
+    <p>Ingresa la contraseña para acceder al modo editor</p>
+    <input type="password" id="password-profesor" placeholder="Contraseña">
+    <button id="btn-verificar" class="btn btn-primary" style="width:100%;">Ingresar</button>
+    <button id="btn-cerrar-modal" class="btn btn-secondary" style="width:100%; margin-top:10px;">Cancelar</button>
+  </div>
+</div>
+
+<script>
+  // ========================================
+  // CONTRASEÑA DEL PROFESOR (CAMBIA ESTO)
+  // ========================================
+  const PROFESOR_PASSWORD = "eva2024";  // ← CAMBIA ESTA CONTRASEÑA
+  
+  // ========================================
+  // DATOS DE LAS MATERIAS Y SUS TEMAS
+  // ========================================
+  
+  let materias = {
+    "modelado-flujos": {
+      nombre: "📊 Modelado de Flujos de Información",
+      icono: "📊",
+      temas: [
+        {
+          id: "mf1",
+          titulo: "Fundamentos de Flujos de Información",
+          objetivo: "Comprender los conceptos básicos de los flujos de información y su importancia en los sistemas",
+          contenido_breve: `<p><strong>¿Qué es un flujo de información?</strong><br>Es la secuencia de pasos que siguen los datos desde su origen hasta su destino. Incluye entrada, procesamiento, almacenamiento y salida.</p>
+          <p><strong>Componentes principales:</strong><br>• <strong>Fuente:</strong> Origen de los datos<br>• <strong>Canal:</strong> Medio de transmisión<br>• <strong>Receptor:</strong> Destino final<br>• <strong>Retroalimentación:</strong> Respuesta del sistema</p>
+          <p><strong>Ejemplo:</strong> Un formulario web: usuario ingresa datos → internet → servidor → base de datos → mensaje de confirmación.</p>`,
+          orientacion_autoaprendizaje: `<p>📌 <strong>Actividades:</strong></p><ul><li>Identifica 3 flujos en tu vida diaria</li><li>Dibuja el diagrama de un proceso conocido</li><li>Investiga: diferencia entre flujo de datos y workflow</li></ul><p>⏱️ Tiempo estimado: 30-45 minutos</p>`,
+          bibliografia: `<ul><li>Pressman, R. (2020). Ingeniería de Software. McGraw-Hill.</li><li>Video: "¿Qué es un diagrama de flujo?" (YouTube)</li></ul>`,
+          conclusiones: `<p>✅ Podrás definir flujos de información, identificar sus componentes y dibujar diagramas básicos.</p>`,
+          actividad_practica: { descripcion: "Dibuja el diagrama de flujo del proceso de inscripción a un curso", entregable: "Imagen del diagrama" }
+        },
+        {
+          id: "mf2",
+          titulo: "Diagramas de Flujo y Simbología",
+          objetivo: "Aprender la simbología estándar para representar procesos mediante diagramas de flujo",
+          contenido_breve: `<p><strong>Simbología estándar ISO:</strong></p><ul><li><strong>Óvalo:</strong> Inicio/Fin</li><li><strong>Rectángulo:</strong> Proceso</li><li><strong>Rombo:</strong> Decisión</li><li><strong>Paralelogramo:</strong> Entrada/Salida</li><li><strong>Círculo:</strong> Conector</li></ul>
+          <p><strong>Ejemplo - Determinar si un número es par:</strong><br>Inicio → Leer número → ¿N%2=0? → Sí: "Es par" → Fin<br>→ No: "Es impar" → Fin</p>`,
+          orientacion_autoaprendizaje: `<p>📌 Practica: Dibuja diagramas para calcular promedio, cajero automático, y un semáforo.</p><p>⏱️ Tiempo: 45-60 minutos</p>`,
+          bibliografia: `<ul><li>ISO 5807:1985 - Símbolos para diagramas de flujo</li><li>draw.io - Herramienta gratuita</li></ul>`,
+          conclusiones: `<p>✅ Identificarás símbolos, leerás diagramas existentes y crearás los tuyos propios.</p>`,
+          actividad_practica: { descripcion: "Diagrama para: Leer 10 números, contar positivos, negativos y ceros", entregable: "Diagrama en draw.io o papel" }
+        }
+      ]
+    },
+    "tratamiento-imagen-video": {
+      nombre: "🎬 Tratamiento de Imagen y Video",
+      icono: "🎬",
+      temas: [
+        {
+          id: "iv1",
+          titulo: "Formatos de Imagen Digital",
+          objetivo: "Conocer los principales formatos de imagen y saber cuándo usar cada uno",
+          contenido_breve: `<p><strong>Formatos principales:</strong></p><ul><li><strong>JPEG/JPG:</strong> Compresión con pérdida, ideal para fotos</li><li><strong>PNG:</strong> Sin pérdida, transparencia, logos y gráficos</li><li><strong>GIF:</strong> 256 colores, animaciones cortas</li><li><strong>WEBP:</strong> Moderno, mejor compresión</li></ul>
+          <p><strong>Para video:</strong> MP4 (recomendado), AVI, MOV, MKV</p>`,
+          orientacion_autoaprendizaje: `<p>📌 Actividades: Toma una foto y conviértela a diferentes formatos, compara tamaños. Investiga qué es un codec.</p><p>⏱️ Tiempo: 45 minutos</p>`,
+          bibliografia: `<ul><li>Gonzalez, Woods - Digital Image Processing</li><li>MDN Web Docs: Guía de formatos de imagen</li></ul>`,
+          conclusiones: `<p>✅ Diferenciarás formatos, sabrás cuándo usar cada uno y podrás convertir imágenes.</p>`,
+          actividad_practica: { descripcion: "Analiza 5 imágenes de diferentes tipos, justifica su formato", entregable: "Documento con análisis" }
+        },
+        {
+          id: "iv2",
+          titulo: "Conceptos de Video: FPS, Resolución, Codecs",
+          objetivo: "Comprender los conceptos fundamentales del video digital",
+          contenido_breve: `<p><strong>Conceptos clave:</strong></p><ul><li><strong>FPS:</strong> 24 (cine), 30 (TV), 60 (gaming)</li><li><strong>Resolución:</strong> 480p, 720p, 1080p, 4K, 8K</li><li><strong>Codecs:</strong> H.264 (universal), H.265 (mejor), VP9 (YouTube)</li><li><strong>Contenedores:</strong> MP4, AVI, MOV, MKV</li></ul>
+          <p><strong>Herramientas libres:</strong> FFmpeg, Shotcut, OBS Studio, HandBrake</p>`,
+          orientacion_autoaprendizaje: `<p>📌 Práctica: Graba un video, analiza sus propiedades. Usa HandBrake para convertir y reducir tamaño.</p><p>⏱️ Tiempo: 60-90 minutos</p>`,
+          bibliografia: `<ul><li>FFmpeg Documentation</li><li>Shotcut Tutorial (YouTube)</li></ul>`,
+          conclusiones: `<p>✅ Comprenderás FPS, resolución, codecs, y podrás usar herramientas de conversión.</p>`,
+          actividad_practica: { descripcion: "Convierte un video a MP4, reduce resolución a 720p y tamaño a menos de 10MB", entregable: "Video + documentación del proceso" }
+        }
+      ]
+    },
+    "tecnologias-informacion": {
+      nombre: "💻 Tecnologías de la Información",
+      icono: "💻",
+      temas: [
+        {
+          id: "ti1",
+          titulo: "Introducción a las TI",
+          objetivo: "Comprender el alcance de las Tecnologías de la Información y su impacto",
+          contenido_breve: `<p><strong>¿Qué son las TI?</strong><br>Conjunto de tecnologías para almacenar, procesar, transmitir y recuperar información.</p>
+          <p><strong>Áreas principales:</strong><br>• Hardware y dispositivos<br>• Software y aplicaciones<br>• Redes y comunicaciones<br>• Bases de datos<br>• Seguridad informática</p>
+          <p><strong>Impacto:</strong> Transformación digital, teletrabajo, educación online, comercio electrónico.</p>`,
+          orientacion_autoaprendizaje: `<p>📌 Investiga: ¿Qué empresas son líderes en TI? ¿Cómo han cambiado las TI tu vida?</p><p>⏱️ Tiempo: 30 minutos</p>`,
+          bibliografia: `<ul><li>Laudon, Laudon - Sistemas de Información Gerencial</li><li>Artículo: "Tendencias TI 2024" (Forbes)</li></ul>`,
+          conclusiones: `<p>✅ Comprenderás el alcance de las TI y su importancia en la sociedad actual.</p>`,
+          actividad_practica: { descripcion: "Identifica 10 tecnologías que usas a diario y clasifícalas por área", entregable: "Lista clasificada" }
+        },
+        {
+          id: "ti2",
+          titulo: "Infraestructura Tecnológica",
+          objetivo: "Conocer los componentes de la infraestructura TI de una organización",
+          contenido_breve: `<p><strong>Componentes:</strong></p><ul><li><strong>Hardware:</strong> Servidores, PCs, dispositivos móviles</li><li><strong>Software:</strong> Sistemas operativos, aplicaciones</li><li><strong>Redes:</strong> Routers, switches, firewalls</li><li><strong>Centros de datos:</strong> Almacenamiento, cloud computing</li><li><strong>Soporte:</strong> Help desk, mantenimiento</li></ul>`,
+          orientacion_autoaprendizaje: `<p>📌 Investiga: ¿Qué es un centro de datos? ¿Qué empresas ofrecen cloud computing?</p><p>⏱️ Tiempo: 45 minutos</p>`,
+          bibliografia: `<ul><li>Stallings - Organización y Arquitectura de Computadores</li><li>Documentación AWS/Azure/Google Cloud</li></ul>`,
+          conclusiones: `<p>✅ Identificarás los componentes de infraestructura TI y entenderás su función.</p>`,
+          actividad_practica: { descripcion: "Dibuja el diagrama de infraestructura TI de una pequeña empresa", entregable: "Diagrama" }
+        },
+        {
+          id: "ti3",
+          titulo: "Seguridad de la Información",
+          objetivo: "Comprender los principios básicos de seguridad informática",
+          contenido_breve: `<p><strong>Triada CIA:</strong></p><ul><li><strong>Confidencialidad:</strong> Solo autorizados acceden</li><li><strong>Integridad:</strong> Los datos no se modifican sin permiso</li><li><strong>Disponibilidad:</strong> Los datos están cuando se necesitan</li></ul>
+          <p><strong>Amenazas comunes:</strong> Malware, phishing, ransomware, ataques DDoS</p>
+          <p><strong>Buenas prácticas:</strong> Contraseñas seguras, 2FA, backups, actualizaciones</p>`,
+          orientacion_autoaprendizaje: `<p>📌 Investiga: ¿Qué es un gestor de contraseñas? ¿Cómo funciona la autenticación en dos pasos?</p><p>⏱️ Tiempo: 45 minutos</p>`,
+          bibliografia: `<ul><li>Stallings - Criptografía y Seguridad en Redes</li><li>INCIBE - Guías de ciberseguridad</li></ul>`,
+          conclusiones: `<p>✅ Aplicarás principios básicos de seguridad y reconocerás amenazas comunes.</p>`,
+          actividad_practica: { descripcion: "Audita la seguridad de tus cuentas: contraseñas, 2FA, backups", entregable: "Informe de auditoría" }
+        }
+      ]
+    }
+  };
+
+  // ========================================
+  // ESTADO DE LA APLICACIÓN
+  // ========================================
+  let modoProfesor = false;
+  let materiaActual = "modelado-flujos";
+  let editandoTemaId = null;
+
+  // ========================================
+  // FUNCIONES AUXILIARES
+  // ========================================
+  function mostrarToast(mensaje, tipo = "success") {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.style.background = tipo === "error" ? "#e91e63" : "#4caf50";
+    toast.innerHTML = mensaje;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  function guardarDatos() {
+    localStorage.setItem("eva_contenidos", JSON.stringify(materias));
+    mostrarToast("✅ Contenidos guardados localmente");
+  }
+
+  function cargarDatos() {
+    const guardado = localStorage.getItem("eva_contenidos");
+    if (guardado) {
+      materias = JSON.parse(guardado);
+      mostrarToast("📂 Contenidos cargados desde almacenamiento local");
+    }
+  }
+
+  // ========================================
+  // RENDERIZADO DE TABS
+  // ========================================
+  function renderizarTabs() {
+    const tabsContainer = document.getElementById("tabs-materias");
+    tabsContainer.innerHTML = Object.keys(materias).map(key => `
+      <div class="tab ${materiaActual === key ? 'activo' : ''}" data-materia="${key}">
+        ${materias[key].icono} ${materias[key].nombre}
+      </div>
+    `).join("");
+    
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        materiaActual = tab.dataset.materia;
+        renderizarTabs();
+        renderizarTemas();
+      });
+    });
+  }
+
+  // ========================================
+  // RENDERIZADO DE TEMAS
+  // ========================================
+  function renderizarTemas() {
+    const container = document.getElementById("temas-container");
+    const materia = materias[materiaActual];
+    
+    if (!materia || !materia.temas || materia.temas.length === 0) {
+      container.innerHTML = `<div style="text-align:center; padding:50px; background:white; border-radius:15px;">
+        <p>📭 No hay temas en esta materia.</p>
+        ${modoProfesor ? '<button id="btn-agregar-primer-tema" class="btn btn-primary">➕ Agregar primer tema</button>' : ''}
+      </div>`;
+      if (modoProfesor) {
+        document.getElementById("btn-agregar-primer-tema")?.addEventListener("click", () => abrirEditor());
+      }
+      return;
+    }
+    
+    container.innerHTML = `
+      <div class="temas-grid">
+        ${materia.temas.map((tema, idx) => `
+          <div class="tema-card" id="tema-${tema.id}">
+            <div class="tema-header" onclick="toggleTema('${tema.id}')">
+              <h3>${tema.titulo} <span class="badge-materia">${materia.icono}</span></h3>
+              <div class="objetivo">🎯 ${tema.objetivo.substring(0, 80)}...</div>
+            </div>
+            <div class="tema-body">
+              <div class="seccion"><h4>📖 Contenidos</h4><div class="contenido-breve">${tema.contenido_breve}</div></div>
+              <div class="seccion"><h4>🧠 Orientación</h4><div class="orientacion">${tema.orientacion_autoaprendizaje}</div></div>
+              <div class="seccion"><h4>📚 Bibliografía</h4><div class="bibliografia">${tema.bibliografia}</div></div>
+              <div class="seccion"><h4>🏁 Conclusiones</h4><div class="conclusiones">${tema.conclusiones}</div></div>
+              <div class="actividad"><h4>✏️ Actividad</h4><p>${tema.actividad_practica.descripcion}</p><p><strong>📎 Entregable:</strong> ${tema.actividad_practica.entregable}</p>
+              <button class="btn-actividad" onclick="marcarCompletado('${tema.id}')">✅ Marcar como estudiado</button></div>
+              ${modoProfesor ? `
+                <div class="acciones-tema">
+                  <button class="btn-editar" onclick="editarTema('${tema.id}')">✏️ Editar</button>
+                  <button class="btn-eliminar" onclick="eliminarTema('${tema.id}')">🗑️ Eliminar</button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // ========================================
+  // FUNCIONES GLOBALES (accesibles desde HTML)
+  // ========================================
+  window.toggleTema = function(id) {
+    const card = document.getElementById(`tema-${id}`);
+    card.classList.toggle('abierto');
+  };
+
+  window.marcarCompletado = function(id) {
+    let progreso = JSON.parse(localStorage.getItem('eva_progreso') || '{}');
+    progreso[id] = { completado: true, fecha: new Date().toISOString() };
+    localStorage.setItem('eva_progreso', JSON.stringify(progreso));
+    mostrarToast(`✅ Tema completado! (${new Date().toLocaleDateString()})`);
+  };
+
+  window.editarTema = function(id) {
+    if (!modoProfesor) return;
+    const tema = materias[materiaActual].temas.find(t => t.id === id);
+    if (tema) {
+      editandoTemaId = id;
+      document.getElementById("tema-id").value = tema.id;
+      document.getElementById("tema-titulo").value = tema.titulo;
+      document.getElementById("tema-objetivo").value = tema.objetivo;
+      document.getElementById("tema-contenido").value = tema.contenido_breve;
+      document.getElementById("tema-orientacion").value = tema.orientacion_autoaprendizaje;
+      document.getElementById("tema-bibliografia").value = tema.bibliografia;
+      document.getElementById("tema-conclusiones").value = tema.conclusiones;
+      document.getElementById("tema-actividad-desc").value = tema.actividad_practica.descripcion;
+      document.getElementById("tema-actividad-entregable").value = tema.actividad_practica.entregable;
+      document.getElementById("editor-titulo").innerHTML = "✏️ Editar Tema";
+      document.getElementById("editor-tema").style.display = "block";
+      document.getElementById("editor-tema").scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  window.eliminarTema = function(id) {
+    if (!modoProfesor) return;
+    if (confirm(`¿Eliminar el tema "${materias[materiaActual].temas.find(t => t.id === id)?.titulo}"?`)) {
+      materias[materiaActual].temas = materias[materiaActual].temas.filter(t => t.id !== id);
+      guardarDatos();
+      renderizarTemas();
+      mostrarToast("🗑️ Tema eliminado");
+    }
+  };
+
+  function abrirEditor(nuevo = true) {
+    if (!modoProfesor) return;
+    if (nuevo) {
+      editandoTemaId = null;
+      document.getElementById("tema-id").value = "";
+      document.getElementById("tema-titulo").value = "";
+      document.getElementById("tema-objetivo").value = "";
+      document.getElementById("tema-contenido").value = "";
+      document.getElementById("tema-orientacion").value = "";
+      document.getElementById("tema-bibliografia").value = "";
+      document.getElementById("tema-conclusiones").value = "";
+      document.getElementById("tema-actividad-desc").value = "";
+      document.getElementById("tema-actividad-entregable").value = "";
+      document.getElementById("editor-titulo").innerHTML = "➕ Nuevo Tema";
+    }
+    document.getElementById("editor-tema").style.display = "block";
+    document.getElementById("editor-tema").scrollIntoView({ behavior: "smooth" });
+  }
+
+  function guardarTema() {
+    const tema = {
+      id: document.getElementById("tema-id").value || `tema${Date.now()}`,
+      titulo: document.getElementById("tema-titulo").value,
+      objetivo: document.getElementById("tema-objetivo").value,
+      contenido_breve: document.getElementById("tema-contenido").value,
+      orientacion_autoaprendizaje: document.getElementById("tema-orientacion").value,
+      bibliografia: document.getElementById("tema-bibliografia").value,
+      conclusiones: document.getElementById("tema-conclusiones").value,
+      actividad_practica: {
+        descripcion: document.getElementById("tema-actividad-desc").value,
+        entregable: document.getElementById("tema-actividad-entregable").value
+      }
+    };
+    
+    if (!tema.titulo || !tema.objetivo) {
+      mostrarToast("❌ Título y objetivo son obligatorios", "error");
+      return;
+    }
+    
+    if (editandoTemaId) {
+      const index = materias[materiaActual].temas.findIndex(t => t.id === editandoTemaId);
+      if (index !== -1) materias[materiaActual].temas[index] = tema;
+      mostrarToast("✏️ Tema actualizado");
+    } else {
+      materias[materiaActual].temas.push(tema);
+      mostrarToast("➕ Nuevo tema agregado");
+    }
+    
+    guardarDatos();
+    document.getElementById("editor-tema").style.display = "none";
+    renderizarTemas();
+    editandoTemaId = null;
+  }
+
+  function exportarTodo() {
+    const dataStr = JSON.stringify(materias, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `eva-contenidos-${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    mostrarToast("📤 Datos exportados");
+  }
+
+  function importarJSON(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const imported = JSON.parse(e.target.result);
+        materias = imported;
+        guardarDatos();
+        renderizarTabs();
+        renderizarTemas();
+        mostrarToast("📥 Datos importados correctamente");
+      } catch (err) {
+        mostrarToast("❌ Error al importar: JSON inválido", "error");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ========================================
+  // MODO PROFESOR
+  // ========================================
+  function activarModoProfesor() {
+    modoProfesor = true;
+    document.getElementById("modo-indicador").className = "modo-indicador modo-profesor";
+    document.getElementById("modo-indicador").innerHTML = "👨‍🏫 Modo Profesor (Edición activa)";
+    document.getElementById("toolbar-profesor").style.display = "block";
+    document.getElementById("btn-cambiar-modo").innerHTML = "👨‍🎓 Cambiar a Modo Estudiante";
+    renderizarTemas();
+    mostrarToast("🔓 Modo profesor activado - Puedes editar contenidos");
+  }
+
+  function desactivarModoProfesor() {
+    modoProfesor = false;
+    document.getElementById("modo-indicador").className = "modo-indicador modo-estudiante";
+    document.getElementById("modo-indicador").innerHTML = "👨‍🎓 Modo Estudiante";
+    document.getElementById("toolbar-profesor").style.display = "none";
+    document.getElementById("editor-tema").style.display = "none";
+    document.getElementById("btn-cambiar-modo").innerHTML = "👥 Cambiar a Modo Profesor";
+    renderizarTemas();
+    mostrarToast("🔒 Modo estudiante - Solo lectura");
+  }
+
+  function mostrarModalLogin() {
+    document.getElementById("modal-login").style.display = "flex";
+  }
+
+  // ========================================
+  // INICIALIZACIÓN
+  // ========================================
+  function iniciar() {
+    cargarDatos();
+    renderizarTabs();
+    renderizarTemas();
+    
+    // Eventos de interfaz
+    document.getElementById("btn-cambiar-modo").addEventListener("click", () => {
+      if (modoProfesor) {
+        desactivarModoProfesor();
+      } else {
+        mostrarModalLogin();
+      }
+    });
+    
+    document.getElementById("btn-verificar").addEventListener("click", () => {
+      const pass = document.getElementById("password-profesor").value;
+      if (pass === PROFESOR_PASSWORD) {
+        document.getElementById("modal-login").style.display = "none";
+        activarModoProfesor();
+      } else {
+        alert("❌ Contraseña incorrecta");
+      }
+    });
+    
+    document.getElementById("btn-cerrar-modal").addEventListener("click", () => {
+      document.getElementById("modal-login").style.display = "none";
+    });
+    
+    document.getElementById("btn-nuevo-tema")?.addEventListener("click", () => abrirEditor(true));
+    document.getElementById("btn-guardar-tema")?.addEventListener("click", guardarTema);
+    document.getElementById("btn-cancelar-edicion")?.addEventListener("click", () => {
+      document.getElementById("editor-tema").style.display = "none";
+      editandoTemaId = null;
+    });
+    document.getElementById("btn-exportar-todo")?.addEventListener("click", exportarTodo);
+    
+    const importInput = document.createElement("input");
+    importInput.type = "file";
+    importInput.accept = ".json";
+    importInput.style.display = "none";
+    document.body.appendChild(importInput);
+    importInput.addEventListener("change", (e) => {
+      if (e.target.files[0]) importarJSON(e.target.files[0]);
+    });
+    document.getElementById("btn-importar")?.addEventListener("click", () => importInput.click());
+    
+    // Cerrar modal al hacer clic fuera
+    document.getElementById("modal-login").addEventListener("click", (e) => {
+      if (e.target === document.getElementById("modal-login")) {
+        document.getElementById("modal-login").style.display = "none";
+      }
+    });
+  }
+  
+  iniciar();
+</script>
+</body>
+</html>
