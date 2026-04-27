@@ -1,0 +1,54 @@
+{
+  "teoria": {
+    "Fundamentos de Hardware": {
+      "texto": "## 💻 Fundamentos de Hardware\n\nLa **CPU** (Unidad Central de Procesamiento) es el cerebro de la computadora. Ejecuta instrucciones y procesa datos.\n\n### Componentes principales:\n- **CPU**: Procesa instrucciones\n- **RAM**: Memoria temporal (volátil)\n- **Disco Duro/SSD**: Almacenamiento permanente\n- **Placa Base**: Conecta todos los componentes\n\n### Dispositivos periféricos:\n- **Entrada**: Teclado, mouse, escáner\n- **Salida**: Monitor, impresora, altavoces",
+      "cuestionario": [
+        { "texto": "La CPU interpreta y ejecuta instrucciones.", "esVerdadero": true },
+        { "texto": "La RAM almacena datos permanentemente.", "esVerdadero": false },
+        { "texto": "El disco duro es más rápido que la memoria caché.", "esVerdadero": false },
+        { "texto": "El mouse es un dispositivo de entrada.", "esVerdadero": true },
+        { "texto": "La placa madre conecta todos los componentes.", "esVerdadero": true }
+      ]
+    },
+    "Redes y Comunicación": {
+      "texto": "## 🌐 Redes y Comunicación\n\nUna **red de computadoras** conecta dispositivos para compartir recursos.\n\n### Tipos de redes:\n- **LAN**: Red de área local\n- **WAN**: Red de área amplia (Internet)\n- **WLAN**: Red LAN inalámbrica (Wi-Fi)\n\n### Protocolos importantes:\n- **HTTP/HTTPS**: transferencia de páginas web\n- **DNS**: traduce nombres a direcciones IP",
+      "cuestionario": [
+        { "texto": "HTTP es un protocolo de transferencia de hipertexto.", "esVerdadero": true },
+        { "texto": "La dirección IP versión 4 tiene 128 bits.", "esVerdadero": false },
+        { "texto": "El router permite conectar redes diferentes.", "esVerdadero": true },
+        { "texto": "El protocolo FTP se usa para correo electrónico.", "esVerdadero": false },
+        { "texto": "La latencia es el tiempo de ida y vuelta de un paquete.", "esVerdadero": true }
+      ]
+    },
+    "Seguridad Informática": {
+      "texto": "## 🔒 Seguridad Informática\n\nLa **seguridad informática** protege los sistemas contra amenazas.\n\n### Tipos de amenazas:\n- **Virus**: malware que se replica\n- **Phishing**: suplantación de identidad\n- **Ransomware**: secuestra datos\n\n### Medidas de protección:\n- **Antivirus**: detecta malware\n- **Firewall**: filtra tráfico\n- **Autenticación 2FA**: doble verificación",
+      "cuestionario": [
+        { "texto": "Un firewall puede filtrar tráfico de red.", "esVerdadero": true },
+        { "texto": "El phishing obtiene datos mediante ingeniería social.", "esVerdadero": true },
+        { "texto": "Un antivirus protege solo contra virus de archivos.", "esVerdadero": false },
+        { "texto": "La autenticación de dos factores mejora la seguridad.", "esVerdadero": true },
+        { "texto": "La encriptación simétrica usa una sola clave.", "esVerdadero": true }
+      ]
+    },
+    "Bases de Datos": {
+      "texto": "## 🗄️ Bases de Datos\n\nUna **base de datos** es un conjunto organizado de datos.\n\n### Tipos:\n- **Relacionales (SQL)**: tablas con relaciones\n- **NoSQL**: documentos, grafos\n\n### SQL básico:\n```sql\nSELECT * FROM usuarios;\nINSERT INTO usuarios (nombre) VALUES ('Ana');\n```",
+      "cuestionario": [
+        { "texto": "SQL es un lenguaje para consultar bases de datos relacionales.", "esVerdadero": true },
+        { "texto": "Una base de datos NoSQL no permite almacenar datos.", "esVerdadero": false },
+        { "texto": "Una clave primaria identifica filas de forma única.", "esVerdadero": true },
+        { "texto": "El comando DELETE elimina tablas completas.", "esVerdadero": false },
+        { "texto": "El índice mejora la velocidad de consultas.", "esVerdadero": true }
+      ]
+    },
+    "Desarrollo Web Básico": {
+      "texto": "## 🌐 Desarrollo Web Básico\n\n### Tecnologías fundamentales:\n- **HTML**: estructura y contenido\n- **CSS**: estilo y diseño\n- **JavaScript**: interactividad\n\n### Frameworks populares:\n- **React**: biblioteca de UI\n- **Vue.js**: progresivo y ligero",
+      "cuestionario": [
+        { "texto": "HTML se usa para definir la estructura de una web.", "esVerdadero": true },
+        { "texto": "CSS controla el comportamiento dinámico de la página.", "esVerdadero": false },
+        { "texto": "JavaScript puede manipular el DOM.", "esVerdadero": true },
+        { "texto": "El atributo 'alt' en imágenes es irrelevante para accesibilidad.", "esVerdadero": false },
+        { "texto": "React es una biblioteca de JavaScript.", "esVerdadero": true }
+      ]
+    }
+  }
+}
